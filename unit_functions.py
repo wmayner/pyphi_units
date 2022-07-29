@@ -1,3 +1,5 @@
+# unit_functions.py
+
 import numpy as np
 import pyphi
 
