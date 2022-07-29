@@ -114,39 +114,39 @@ def xor_gate(unit, i=0, floor=None, ceiling=None):
 
 
 def weighted_mean(unit, i=0, weights=[], floor=None, ceiling=None):
-    
+
     weights = [w/np.sum(weights) for w in weights]
     N = len(weights)
-    
+
     tpm = np.ones((2,)*N)
     for state in pyphi.utils.all_states(N):
         weighted_mean = sum([(1 + w*(s*2-1))/2 for w,s in zip(weights, state)])/N
         tpm[state] = weighted_mean*(ceiling-floor) + floor
-    
+
     return tpm
 
 
 def democracy(unit, i=0, floor=None, ceiling=None):
-    
+
     N = len(unit.inputs)
-    
+
     tpm = np.ones((2,)*N)
     for state in pyphi.utils.all_states(N):
         avg_vote = np.mean(state)
         tpm[state] = avg_vote*(ceiling-floor) + floor
-        
+
     return tpm
 
 
 def majority(unit, i=0, floor=None, ceiling=None):
-    
+
     N = len(unit.inputs)
-    
+
     tpm = np.ones((2,)*N)
     for state in pyphi.utils.all_states(N):
         avg_vote = round(np.mean(state))
         tpm[state] = avg_vote*(ceiling-floor) + floor
-        
+
     return tpm
 
 def mismatch_corrector(unit, i=0, floor=None, ceiling=None):

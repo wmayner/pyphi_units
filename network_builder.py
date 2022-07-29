@@ -9,18 +9,15 @@ TODO:
 - allow for sending in function
 """
 
-import numpy as np
-import pandas as pd
-import string
-import pyphi
-import networkx as nx
 import matplotlib.pyplot as plt
-
+import networkx as nx
+import numpy as np
+import pyphi
 from tqdm import tqdm
 
 from unit_functions import *
 
-""" 
+"""
     LOCAL VARIABLES, used to validate the objects created.
 """
 
@@ -139,7 +136,7 @@ class Unit:
         # Setting unit and input state (always congruent with the substrate state)
         self.state = self.get_substate((index,))
         self.input_state = self.get_substate(tuple(inputs))
-        
+
         # validating unit
         assert self.validate(), "Unit did not pass validation"
 
@@ -274,7 +271,7 @@ class Unit:
         self.type = type_description
 
     def get_substate(self, unit_indices):
-            
+
         return tuple(
             [
                 self.substrate_state[i]
@@ -328,7 +325,7 @@ class CompositeUnit:
         # Construct Units for each of the subunits constituting the CompositeUnit
         if input_state==None:
             input_state = [input_state]*len(inputs)
-            
+
         units = [
             Unit(
                 index,
@@ -345,7 +342,7 @@ class CompositeUnit:
 
         # Store the list of indices that input to the unit (one pr subunit).
         self.inputs = inputs
-        
+
         self.substrate_state = units[0].substrate_state
         self.substrate_indices = units[0].substrate_indices
 
@@ -439,7 +436,7 @@ class CompositeUnit:
         elif type(mechanism_combination) == np.ndarray:
             # if specification is explicit as a TPM, it is just set as is
             self.mechanism_combination = mechanism_combination
-            
+
         elif type(mechanism_combination) == str:
             # if specification is explicit as a TPM, it is just set as is
             self.mechanism_combination = mechanism_combination
@@ -475,7 +472,7 @@ class CompositeUnit:
             """
 
             for state in MECHANISM_ACTIVATIONS:
-                
+
                 unit_activation = np.sum(
                 [
                     np.prod(
@@ -488,7 +485,7 @@ class CompositeUnit:
                     for state in MECHANISM_ACTIVATIONS
                 ]
             )
-                
+
             return unit_activation
 
         # Expand all TPMs to be the length of the unit's full set of inputs
@@ -536,7 +533,7 @@ class CompositeUnit:
                 def get_strongest(P):
                     Q = np.array([np.abs(p-0.5) for p in P])
                     return P[np.argmax(Q)]
-                    
+
                 tpm = pyphi.convert.to_md(
                     np.array(
                         [
@@ -553,7 +550,7 @@ class CompositeUnit:
                 def get_strongest(P):
                     Q = np.array([np.abs(p-0.5) for p in P])
                     return P[np.argmax(Q)]
-                    
+
                 tpm = pyphi.convert.to_md(
                     np.array(
                         [
@@ -618,7 +615,7 @@ class CompositeUnit:
             [input_unit_states[input_unit] for input_unit in composite_inputs]
         )
         '''
-        
+
         return input_state
 
     # THIS IS WRONG! IT DOES NOT GET THE RIGHT STATE BECAUSE IT DOESNT CARE ABOUT THE FULL SET OF INDICES
@@ -660,12 +657,12 @@ class Substrate:
 
         # This node's index in the list of nodes.
         self.create_cm(units)
-        
+
         # storing the units
         self.units = units
 
         substrate_tpm = []
-        
+
         if state==None:
             # running through all possible substrate states
             for state in tqdm(list(pyphi.utils.all_states(len(units)))):
@@ -686,7 +683,7 @@ class Substrate:
 
             # validating unit
             assert self.validate(), "Substrate did not pass validation"
-        
+
         else:
             self.state = state
             # running through all possible substrate states
@@ -740,7 +737,7 @@ class Substrate:
                             substrate_indices=self.node_indices,
                             mechanism_combination=unit.params['CompositeUnit'].mechanism_combination,
                         ).Unit
-                        
+
                     else:
                         unit = Unit(
                             unit.index,
@@ -771,7 +768,7 @@ class Substrate:
 
     def __len__(self):
         return len(self.units)
-    
+
     def __eq__(self, other):
         """Return whether this node equals the other object.
 
@@ -789,9 +786,9 @@ class Substrate:
             and self.inputs == other.inputs
             and self.outputs == other.outputs
         )
-        
+
     def combine_unit_tpms(self, units, past_state):
-        
+
         unit_response = []
         # going through each unit to find its state-dependent activation probability
         for unit in units:
@@ -835,12 +832,12 @@ class Substrate:
         gr.graph["params"] = "test"
 
         return gr
-        
+
     def plot_model(self, state=None):
-        
+
         gr = self.get_model(state=None)
         nodes = gr.nodes
-        
+
         if state == None:
             state = (1,) * len(self.node_indices)
 
@@ -852,7 +849,7 @@ class Substrate:
             node_color=["blue" if state[s] == 1 else "gray" for s in nodes],
         )
         plt.show()
-        
+
     def simulate(self,initial_state=None,timesteps=1000):
 
         rng = np.random.default_rng(0)
