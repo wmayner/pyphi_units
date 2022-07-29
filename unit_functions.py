@@ -4,7 +4,6 @@ import pyphi
 """
 TODO:
 - move all validation checks to validation function
-
 """
 
 
@@ -12,7 +11,6 @@ def LogFunc(x, determinism, threshold, floor=0, ceiling=1):
     return ceiling * (
         floor + (1 - floor) / (1 + np.e ** (-determinism * (x - threshold)))
     )
-    return y
 
 
 def sigmoid(
@@ -24,32 +22,26 @@ def sigmoid(
     floor=None,
     ceiling=None,
 ):
-
-    n_nodes = len(input_weights)
-
-    # producing transition probability matrix
     tpm = np.array(
         [
             [
                 LogFunc(
-                    sum(state * np.array([input_weights[n] for n in range(n_nodes)])),
+                    sum(state * np.array([input_weights[n] for n in range(len(input_weights))])),
                     determinism,
                     threshold,
                     floor=floor,
                     ceiling=ceiling,
                 )
             ]
-            for state in pyphi.utils.all_states(n_nodes)
+            for state in pyphi.utils.all_states(len(input_weights))
         ]
     )
-
     return pyphi.convert.to_multidimensional(tpm)
 
 
 def sor_gate(
     unit, i=0, pattern_selection=None, selectivity=None, floor=None, ceiling=None
 ):
-
     # get state of
 
     # Ensure states are tuples
@@ -88,7 +80,6 @@ def sor_gate(
     tpm[unit.input_state] = (
         ceiling if unit.input_state in pattern_selection else not_pattern
     )
-
     return tpm
 
 
@@ -118,43 +109,42 @@ def xor_gate(unit, i=0, floor=None, ceiling=None):
 
 
 def weighted_mean(unit, i=0, weights=[], floor=None, ceiling=None):
-
-    weights = [w/np.sum(weights) for w in weights]
+    weights = [w / np.sum(weights) for w in weights]
     N = len(weights)
 
-    tpm = np.ones((2,)*N)
+    tpm = np.ones((2,) * N)
     for state in pyphi.utils.all_states(N):
-        weighted_mean = sum([(1 + w*(s*2-1))/2 for w,s in zip(weights, state)])/N
-        tpm[state] = weighted_mean*(ceiling-floor) + floor
+        weighted_mean = (
+            sum([(1 + w * (s * 2 - 1)) / 2 for w, s in zip(weights, state)]) / N
+        )
+        tpm[state] = weighted_mean * (ceiling - floor) + floor
 
     return tpm
 
 
 def democracy(unit, i=0, floor=None, ceiling=None):
-
     N = len(unit.inputs)
 
-    tpm = np.ones((2,)*N)
+    tpm = np.ones((2,) * N)
     for state in pyphi.utils.all_states(N):
         avg_vote = np.mean(state)
-        tpm[state] = avg_vote*(ceiling-floor) + floor
+        tpm[state] = avg_vote * (ceiling - floor) + floor
 
     return tpm
 
 
 def majority(unit, i=0, floor=None, ceiling=None):
-
     N = len(unit.inputs)
 
-    tpm = np.ones((2,)*N)
+    tpm = np.ones((2,) * N)
     for state in pyphi.utils.all_states(N):
         avg_vote = round(np.mean(state))
-        tpm[state] = avg_vote*(ceiling-floor) + floor
+        tpm[state] = avg_vote * (ceiling - floor) + floor
 
     return tpm
 
-def mismatch_corrector(unit, i=0, floor=None, ceiling=None):
 
+def mismatch_corrector(unit, i=0, floor=None, ceiling=None):
     # Ensure unit has input state
     if unit.input_state == None:
         print(
@@ -179,7 +169,6 @@ def mismatch_corrector(unit, i=0, floor=None, ceiling=None):
         unit.set_inputs(tuple(unit.inputs[[0]]))
 
     # check whether state of unit matches its input, and create tpm accordingly
-
     if unit.state == unit.input_state:
         tpm = np.ones([2]) * 0.5
     else:
@@ -197,12 +186,11 @@ def modulated_sigmoid(
     floor=None,
     ceiling=None,
 ):
-    # modulation by the last unit in the inputs.
-    # modulation consists in a linear shift in the threshold of the sigmoid, distance given by last value in input_weights
+    """Modulation by the last unit in the inputs.
 
-    n_nodes = len(input_weights)
-
-    # producing transition probability matrix
+    Modulation consists in a linear shift in the threshold of the sigmoid,
+    distance given by last value in input_weights.
+    """
     tpm = np.array(
         [
             [
@@ -216,10 +204,9 @@ def modulated_sigmoid(
                     ceiling=ceiling,
                 )
             ]
-            for state in pyphi.utils.all_states(n_nodes)
+            for state in pyphi.utils.all_states(len(input_weights))
         ]
     )
-
     return pyphi.convert.to_multidimensional(tpm)
 
 
@@ -232,45 +219,35 @@ def biased_sigmoid(
     floor=None,
     ceiling=None,
 ):
-    # A sigmoid unit that is biased in its activation by the last unit in the inputs.
-    # The bias consists in a rescaling of the activation probability to make it more in line with the biasing unit. The biasing unit is assumed to be the last one of the inputs.
-    # For example, if the biased unit is OFF, the sigmoid activation probability is divided by the factor given in the last value of input_weights. If the unit is ON, 1 - the activation probability is divided by the factor (in essence reducing the probability that it will NOT activate).
+    """A sigmoid unit whose activation is biased by the last input unit.
 
-    n_nodes = len(input_weights)
-
-    # producing transition probability matrix
+    The bias consists in a rescaling of the activation probability to make it
+    more in line with the biasing unit. The biasing unit is assumed to be the
+    last one of the inputs.  For example, if the biased unit is OFF, the sigmoid
+    activation probability is divided by the factor given in the last value of
+    input_weights. If the unit is ON, 1 - the activation probability is divided
+    by the factor (in essence reducing the probability that it will NOT
+    activate).
+    """
+    states = pyphi.utils.all_states(len(input_weights))
+    activations = [
+        LogFunc(
+            sum(state[:-1] * np.array([weight for weight in input_weights[:-1]])),
+            determinism,
+            threshold,
+            floor=floor,
+            ceiling=ceiling,
+        )
+        for state in states
+    ]
     tpm = np.array(
         [
             [
-                LogFunc(
-                    sum(
-                        state[:-1] * np.array([weight for weight in input_weights[:-1]])
-                    ),
-                    determinism,
-                    threshold,
-                    floor=floor,
-                    ceiling=ceiling,
-                )
-                / input_weights[-1]
+                activation / input_weights[-1]
                 if state[-1] == 0
-                else 1
-                - (
-                    1
-                    - LogFunc(
-                        sum(
-                            state[:-1]
-                            * np.array([weight for weight in input_weights[:-1]])
-                        ),
-                        determinism,
-                        threshold,
-                        floor=floor,
-                        ceiling=ceiling,
-                    )
-                )
-                / input_weights[-1]
+                else 1 - (1 - activation) / input_weights[-1]
             ]
-            for state in pyphi.utils.all_states(n_nodes)
+            for state, activation in zip(states, activations)
         ]
     )
-
     return pyphi.convert.to_multidimensional(tpm)
