@@ -109,7 +109,7 @@ class Unit:
         self.params = params
 
         # Store the type of unit
-        if not type(tpm) == np.ndarray:
+        if not isinstance(tpm, np.ndarray):
             self.type = params["mechanism"]
         else:
             self.type = "TPM"
@@ -146,7 +146,7 @@ class Unit:
         assert self.validate(), "Unit did not pass validation"
 
         # Store the type of unit
-        if not type(tpm) == np.ndarray:
+        if not isinstance(tpm, np.ndarray):
             self.set_unit_tpm()
         else:
             self.tpm = tpm
@@ -156,7 +156,7 @@ class Unit:
 
         The checks for validity are defined in the local UNIT_VALIDATION object.
         """
-        if type(self.params) == dict:
+        if isinstance(self.params, dict):
             unit_type = self.params["mechanism"]
 
             if not unit_type == "composite":
@@ -172,7 +172,6 @@ class Unit:
                             )
                         )
                         self.params["params"][key] = value
-
         return True
 
     def __repr__(self):
@@ -208,11 +207,10 @@ class Unit:
         turning ON, given the possible states of the inputs.
         """
 
-        if type(self.params) == np.ndarray:
+        if isinstance(self.params, np.ndarray):
             # if params just include a TPM
             self.tpm = self.params * 1.0
-
-        elif type(self.params) == dict:
+        elif isinstance(self.params, dict):
             if self.params["mechanism"] == "composite":
                 c_unit = self.params["CompositeUnit"]
                 self.tpm = CompositeUnit(
@@ -431,18 +429,18 @@ class CompositeUnit:
                 ]
             ).reshape((2,) * num_subunits)
 
-        elif type(mechanism_combination) == dict:
+        elif isinstance(mechanism_combination, dict):
             # if specification is given as a dict, we create the TPM as if a Unit specification.
             func = UNIT_VALIDATION[mechanism_combination["mechanism"]]["function"]
             self.mechanism_combination = func(
                 self, 0, **mechanism_combination["params"]
             )
 
-        elif type(mechanism_combination) == np.ndarray:
+        elif isinstance(mechanism_combination, np.ndarray):
             # if specification is explicit as a TPM, it is just set as is
             self.mechanism_combination = mechanism_combination
 
-        elif type(mechanism_combination) == str:
+        elif isinstance(mechanism_combination, str):
             # if specification is explicit as a TPM, it is just set as is
             self.mechanism_combination = mechanism_combination
 
@@ -514,7 +512,7 @@ class CompositeUnit:
                         state, tuple([all_inputs.index(i) for i in inputs])
                     )
                 ]
-                if type(P) == np.ndarray:
+                if isinstance(P, np.ndarray):
                     P = P[0]
                 mechanism_activation.append(P)
 
@@ -524,7 +522,7 @@ class CompositeUnit:
         expanded_tpms = np.array(expanded_tpms).T
 
         # combine subunit TPMs into composite unit tpm
-        if not type(self.mechanism_combination) == str:
+        if not isinstance(self.mechanism_combination, str):
             tpm = pyphi.convert.to_md(
                 np.array(
                     [
@@ -722,9 +720,8 @@ class Substrate:
         new_units = []
         for unit in units:
             if (
-                type(unit.tpm) == np.ndarray
-                or type(unit.params) == dict
-                or type(unit.params) == np.ndarray
+                isinstance(unit.tpm, np.ndarray)
+                or isinstance(unit.params, (dict, np.ndarray))
             ):
                 # CHECK ALL OF THIS!!!
                 substrate_unit_state = self.get_subset_state((unit.index,))
