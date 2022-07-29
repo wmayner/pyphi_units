@@ -8,6 +8,13 @@ TODO:
 """
 
 
+def LogFunc(x, determinism, threshold, floor=0, ceiling=1):
+    return ceiling * (
+        floor + (1 - floor) / (1 + np.e ** (-determinism * (x - threshold)))
+    )
+    return y
+
+
 def sigmoid(
     unit,
     i=0,
@@ -17,11 +24,6 @@ def sigmoid(
     floor=None,
     ceiling=None,
 ):
-    def LogFunc(x, determinism, threshold):
-        y = ceiling * (
-            floor + (1 - floor) / (1 + np.e ** (-determinism * (x - threshold)))
-        )
-        return y
 
     n_nodes = len(input_weights)
 
@@ -33,6 +35,8 @@ def sigmoid(
                     sum(state * np.array([input_weights[n] for n in range(n_nodes)])),
                     determinism,
                     threshold,
+                    floor=floor,
+                    ceiling=ceiling,
                 )
             ]
             for state in pyphi.utils.all_states(n_nodes)
@@ -196,12 +200,6 @@ def modulated_sigmoid(
     # modulation by the last unit in the inputs.
     # modulation consists in a linear shift in the threshold of the sigmoid, distance given by last value in input_weights
 
-    def LogFunc(x, determinism, threshold):
-        y = ceiling * (
-            floor + (1 - floor) / (1 + np.e ** (-determinism * (x - threshold)))
-        )
-        return y
-
     n_nodes = len(input_weights)
 
     # producing transition probability matrix
@@ -214,6 +212,8 @@ def modulated_sigmoid(
                     ),
                     determinism,
                     threshold - input_weights[-1] * state[-1],
+                    floor=floor,
+                    ceiling=ceiling,
                 )
             ]
             for state in pyphi.utils.all_states(n_nodes)
@@ -236,12 +236,6 @@ def biased_sigmoid(
     # The bias consists in a rescaling of the activation probability to make it more in line with the biasing unit. The biasing unit is assumed to be the last one of the inputs.
     # For example, if the biased unit is OFF, the sigmoid activation probability is divided by the factor given in the last value of input_weights. If the unit is ON, 1 - the activation probability is divided by the factor (in essence reducing the probability that it will NOT activate).
 
-    def LogFunc(x, determinism, threshold):
-        y = ceiling * (
-            floor + (1 - floor) / (1 + np.e ** (-determinism * (x - threshold)))
-        )
-        return y
-
     n_nodes = len(input_weights)
 
     # producing transition probability matrix
@@ -254,6 +248,8 @@ def biased_sigmoid(
                     ),
                     determinism,
                     threshold,
+                    floor=floor,
+                    ceiling=ceiling,
                 )
                 / input_weights[-1]
                 if state[-1] == 0
@@ -267,6 +263,8 @@ def biased_sigmoid(
                         ),
                         determinism,
                         threshold,
+                        floor=floor,
+                        ceiling=ceiling,
                     )
                 )
                 / input_weights[-1]
