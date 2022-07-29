@@ -73,18 +73,21 @@ class Unit:
 
     Args:
         index (int): Integer identifier of the unit.
-
-        inputs (tuple[int]): A tuple of integers specifying the identities of the units providing iniputs.
+        inputs (tuple[int]): A tuple of integers specifying the identities of
+            the units providing iniputs.
 
     Keyword Args:
-        params (dict or np.ndarray): Contains a specification of the mechanism of the unit. Given either explicitly by a TPM (ndarray) or implicitly as specifications in a dict. The supported unit tpyes can be found in the UNIT_VALIDATION object.
-
+        params (dict or np.ndarray): Contains a specification of the mechanism
+            of the unit. Given either explicitly by a TPM (ndarray) or
+            implicitly as specifications in a dict. The supported unit tpyes can
+            be found in the UNIT_VALIDATION object.
         label (str): Human readable name for the unit
-
-        state (int): Indicates the current state of the unit: 1 means it is ON, 0 OFF. For now, only binary units are supported.
-
-        input_state (tuple[int]): Binary tuple (consisting of 1s and 0s) that indicates the current state of the inputs. This should be understood as the state of the inputs to the unit, and not the past state of the units that provide input to the unit.
-
+        state (int): Indicates the current state of the unit: 1 means it is ON,
+            0 OFF. For now, only binary units are supported.
+        input_state (tuple[int]): Binary tuple (consisting of 1s and 0s) that
+            indicates the current state of the inputs. This should be understood as
+            the state of the inputs to the unit, and not the past state of the units
+            that provide input to the unit.
 
     Example:
         .
@@ -462,12 +465,18 @@ class CompositeUnit:
         def combined_activation_probability(
             activation_probabilities, mechanism_combination
         ):
-            """the probability of the composite unit activating given the activation of subunits due to a particular input state.
-            Returns:
-                tpm (np.ndarray): The composite unit TPM, specifying the activation probability (probability to turn ON) given all possible input states.
+            """The probability of the composite unit activating given the
+            activation of subunits due to a particular input state.
 
             Args:
-                tpms (list[np.ndarray]): A specification of the way the composite unit should translate activations of its subunits into a single output from the composite unit.
+                tpms (list[np.ndarray]): A specification of the way the
+                    composite unit should translate activations of its subunits into
+                    a single output from the composite unit.
+
+            Returns:
+                np.ndarray: The composite unit TPM, specifying the activation
+                probability (probability to turn ON) given all possible input
+                states.
 
             A multidimensional array, containing the probabilities for the unit
             turning ON, given the possible activations of the subunits.
@@ -584,10 +593,12 @@ class CompositeUnit:
         return inputs
 
     def composite_input_state(self, units):
-        """tuple[int]: the input state to the composite unit as a whole (must be congruent among shared inputs to subunits).
+        """tuple[int]: the input state to the composite unit as a whole (must be
+        congruent among shared inputs to subunits).
 
         Args:
-            units (list[Unit]): all the units that constitute the composite unit.
+            units (list[Unit]): all the units that constitute the composite
+            unit.
 
         """
 
@@ -625,8 +636,10 @@ class CompositeUnit:
         """tuple[int (binary)]: the state of a subset of indices.
 
         Args:
-            state (tuple[int(binary)]): The (binary) state of the full set of inputs.
-            subset_indices (tuple[int]): The indices (relative to the state) for the subset.
+            state (tuple[int(binary)]): The (binary) state of the full set of
+                inputs.
+            subset_indices (tuple[int]): The indices (relative to the state) for
+                the subset.
         """
         return tuple([state[ix] for i, ix in enumerate(subset_indices)])
 
